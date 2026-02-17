@@ -1,0 +1,26 @@
+{
+  "name": "para-x402-example",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "description": "Example integration of Para wallet SDK with x402 protocol to make paid API calls to EnrichX402",
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@getpara/server-sdk": "^2.2.0",
+    "@getpara/viem-v2-integration": "^2.2.0",
+    "@x402/core": "^0.3.0",
+    "@x402/evm": "^0.3.0",
+    "@x402/fetch": "^0.3.0",
+    "dotenv": "^16.4.7",
+    "viem": "^2.42.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsx": "^4.19.1",
+    "typescript": "^5.0.0"
+  }
+}
