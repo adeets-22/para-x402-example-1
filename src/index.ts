@@ -1,8 +1,6 @@
 import "dotenv/config";
 import { Para as ParaServer, Environment } from "@getpara/server-sdk";
-import { createParaAccount, createParaViemClient } from "@getpara/viem-v2-integration";
-import { http } from "viem";
-import { base } from "viem/chains";
+import { createParaAccount } from "@getpara/viem-v2-integration";
 import { x402Client, wrapFetchWithPayment, x402HTTPClient } from "@x402/fetch";
 import { registerExactEvmScheme } from "@x402/evm/exact/client";
 import { encrypt, decrypt } from "./utils/encryption.js";
@@ -55,34 +53,17 @@ async function main() {
   }
 
   // ── 3. Create Para viem account ──────────────────────────────────────
+  //
+  // createParaAccount() returns a standard viem LocalAccount that implements
+  // signTypedData — which is exactly what x402's ClientEvmSigner needs.
+  // No WalletClient or RPC connection required since we're only signing.
   const paraAccount = createParaAccount(para);
-  const paraViemClient = createParaViemClient(para, {
-    account: paraAccount,
-    chain: base,
-    transport: http("https://mainnet.base.org"),
-  });
 
   console.log(`Para wallet address: ${paraAccount.address}`);
 
   // ── 4. Create x402 client with Para as the signer ───────────────────
-  //
-  // x402's ClientEvmSigner interface requires:
-  //   - address: `0x${string}`
-  //   - signTypedData(args): Promise<`0x${string}`>
-  //
-  // Para's viem client provides exactly this via signTypedData.
-  const paraSigner = {
-    address: paraAccount.address,
-    signTypedData: (args: {
-      domain: Record<string, unknown>;
-      types: Record<string, unknown>;
-      primaryType: string;
-      message: Record<string, unknown>;
-    }) => paraViemClient.signTypedData(args as Parameters<typeof paraViemClient.signTypedData>[0]),
-  };
-
   const x402 = new x402Client();
-  registerExactEvmScheme(x402, { signer: paraSigner });
+  registerExactEvmScheme(x402, { signer: paraAccount });
 
   const fetchWithPayment = wrapFetchWithPayment(fetch, x402);
 

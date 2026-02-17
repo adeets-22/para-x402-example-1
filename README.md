@@ -71,23 +71,17 @@ npm start "blockchain payment protocols 2025"
 The bridge between Para and x402 is straightforward:
 
 ```typescript
-import { createParaAccount, createParaViemClient } from "@getpara/viem-v2-integration";
+import { createParaAccount } from "@getpara/viem-v2-integration";
 import { x402Client, wrapFetchWithPayment } from "@x402/fetch";
 import { registerExactEvmScheme } from "@x402/evm/exact/client";
 
-// Para provides the wallet and signing
+// createParaAccount() returns a viem LocalAccount with { address, signTypedData }
+// which is exactly what x402's ClientEvmSigner interface needs — no adapter required.
 const paraAccount = createParaAccount(para);
-const paraViemClient = createParaViemClient(para, { account: paraAccount, chain: base, transport: http() });
 
-// Adapt Para's viem client to x402's signer interface
-const paraSigner = {
-  address: paraAccount.address,
-  signTypedData: (args) => paraViemClient.signTypedData(args),
-};
-
-// Register with x402 and make paid requests
+// Register Para's account directly as the x402 signer
 const client = new x402Client();
-registerExactEvmScheme(client, { signer: paraSigner });
+registerExactEvmScheme(client, { signer: paraAccount });
 const fetchWithPayment = wrapFetchWithPayment(fetch, client);
 
 // Any request to an x402-enabled server now auto-pays via Para
