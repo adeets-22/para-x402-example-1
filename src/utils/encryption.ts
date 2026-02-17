@@ -1,14 +1,56 @@
 /// <reference lib="dom" />
 
+import { readFileSync, writeFileSync, existsSync } from "fs";
+import { resolve, dirname } from "path";
+import { fileURLToPath } from "url";
+import { randomBytes } from "crypto";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const ENV_PATH = resolve(__dirname, "../../.env");
+
 const ALGORITHM = "AES-GCM";
 const IV_LENGTH = 12;
+
+/**
+ * Auto-generates a 32-character encryption key and appends it to .env if missing.
+ */
+export function ensureEncryptionKey(): string {
+  const existing = process.env.ENCRYPTION_KEY;
+  if (existing && existing.length === 32) return existing;
+
+  // If a key exists but has wrong length, don't overwrite — it may have encrypted data
+  if (existing && existing.length > 0) {
+    throw new Error(
+      `ENCRYPTION_KEY in .env is ${existing.length} chars (expected 32). ` +
+      `Changing it would make existing encrypted data unreadable. ` +
+      `Fix it manually or delete .keystore.json to start fresh.`
+    );
+  }
+
+  const key = randomBytes(16).toString("hex"); // 32 hex chars
+  const line = `ENCRYPTION_KEY=${key}\n`;
+
+  if (existsSync(ENV_PATH)) {
+    const content = readFileSync(ENV_PATH, "utf-8");
+    if (content.includes("ENCRYPTION_KEY=")) {
+      // Replace placeholder or empty value
+      const updated = content.replace(/ENCRYPTION_KEY=.*/, `ENCRYPTION_KEY=${key}`);
+      writeFileSync(ENV_PATH, updated);
+    } else {
+      writeFileSync(ENV_PATH, content + line);
+    }
+  } else {
+    writeFileSync(ENV_PATH, line);
+  }
+
+  process.env.ENCRYPTION_KEY = key;
+  return key;
+}
 
 function getEncryptionKey(): string {
   const key = process.env.ENCRYPTION_KEY;
   if (!key || key.length !== 32) {
-    throw new Error(
-      "ENCRYPTION_KEY must be set in your .env file and be exactly 32 characters long."
-    );
+    return ensureEncryptionKey();
   }
   return key;
 }

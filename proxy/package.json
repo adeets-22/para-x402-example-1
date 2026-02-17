@@ -1,0 +1,22 @@
+{
+  "name": "para-x402-proxy",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@getpara/server-sdk": "^2.11.0",
+    "@hono/node-server": "^1.13.8",
+    "hono": "^4.7.2",
+    "viem": "^2.46.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.1",
+    "tsx": "^4.19.3",
+    "typescript": "^5.9.3"
+  }
+}
