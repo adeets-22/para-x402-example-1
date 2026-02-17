@@ -38,9 +38,7 @@ export interface CheckWalletResult {
 export interface SponsorResult {
   ok: boolean;
   ethTxHash: string;
-  usdcTxHash: string;
   ethAmount: string;
-  usdcAmount: string;
 }
 
 export interface AuthStartResult {

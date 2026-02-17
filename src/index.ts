@@ -106,9 +106,8 @@ async function createWallet() {
     console.log("\nRequesting initial funds...");
     try {
       const sponsor = await proxy.requestSponsorship(result.address);
-      console.log(`✓ Funded with ${sponsor.ethAmount} ETH + $${sponsor.usdcAmount} USDC on Base`);
-      console.log(`  ETH tx:  ${sponsor.ethTxHash}`);
-      console.log(`  USDC tx: ${sponsor.usdcTxHash}`);
+      console.log(`✓ Funded with ${sponsor.ethAmount} ETH for gas on Base`);
+      console.log(`  TX: ${sponsor.ethTxHash}`);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       if (msg.includes("ALREADY_SPONSORED")) {
@@ -322,11 +321,11 @@ async function fundWallet() {
   console.log(`\nYour wallet address (Base network):`);
   console.log(`  ${activeWallet.address}`);
 
-  const choice = await prompt("\nRequest sponsorship (free gas + $0.10 USDC)? (y/n): ");
+  const choice = await prompt("\nRequest sponsorship (free gas)? (y/n): ");
   if (choice.toLowerCase() === "y") {
     try {
       const sponsor = await proxy.requestSponsorship(activeWallet.address);
-      console.log(`\n✓ Funded with ${sponsor.ethAmount} ETH + $${sponsor.usdcAmount} USDC`);
+      console.log(`\n✓ Funded with ${sponsor.ethAmount} ETH for gas`);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       if (msg.includes("ALREADY_SPONSORED")) {
