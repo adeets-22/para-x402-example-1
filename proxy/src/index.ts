@@ -5,11 +5,9 @@ import {
   hashTypedData,
   parseSignature,
   serializeSignature,
-  createPublicClient,
   createWalletClient,
   http,
   parseEther,
-  parseUnits,
   type Hex,
 } from "viem";
 import { base } from "viem/chains";
@@ -26,21 +24,8 @@ if (!PARA_API_KEY) {
 }
 
 const BASE_RPC = "https://mainnet.base.org";
-const USDC_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913" as const;
 const FREE_TIER_LIMIT = 100;
 const SPONSOR_ETH_AMOUNT = "0.0005";
-
-const ERC20_TRANSFER_ABI = [
-  {
-    type: "function",
-    name: "transfer",
-    inputs: [
-      { name: "to", type: "address" },
-      { name: "amount", type: "uint256" },
-    ],
-    outputs: [{ name: "", type: "bool" }],
-  },
-] as const;
 
 // ── In-Memory Storage (replaces CF KV) ──────────────────────────────────────
 
@@ -223,25 +208,19 @@ app.post("/sponsor", async (c) => {
 
   const walletClient = createWalletClient({ account, chain: base, transport: http(BASE_RPC) });
 
+  // Send ETH for gas
   const ethTxHash = await walletClient.sendTransaction({
     to: address as `0x${string}`,
     value: parseEther(SPONSOR_ETH_AMOUNT),
   });
 
-  const usdcTxHash = await walletClient.writeContract({
-    address: USDC_ADDRESS,
-    abi: ERC20_TRANSFER_ABI,
-    functionName: "transfer",
-    args: [address as `0x${string}`, parseUnits("0.1", 6)],
-  });
-
   sponsorStore.set(sponsorKey, {
     ethTxHash,
-    usdcTxHash,
+    usdcTxHash: "",
     sponsoredAt: new Date().toISOString(),
   });
 
-  return c.json({ ok: true, ethTxHash, usdcTxHash, ethAmount: SPONSOR_ETH_AMOUNT, usdcAmount: "0.10" });
+  return c.json({ ok: true, ethTxHash, ethAmount: SPONSOR_ETH_AMOUNT });
 });
 
 // ── Auth/Recovery Routes ────────────────────────────────────────────────────
