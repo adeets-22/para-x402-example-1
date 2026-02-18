@@ -4,7 +4,7 @@ async function post<T>(path: string, body: unknown): Promise<T> {
   const res = await fetch(`${PROXY_URL}${path}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
+    body: JSON.stringify(body, (_, v) => (typeof v === "bigint" ? v.toString() : v)),
   });
   const data = await res.json() as T & { error?: string };
   if (!res.ok) {
